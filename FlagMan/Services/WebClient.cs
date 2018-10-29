@@ -11,7 +11,6 @@ namespace FlagMan.Services
     {
         private IConfiguration _config;
         private HttpClient _web;
-        private IniConfigurationProvider _ini;
 
         public WebClient(IConfiguration config)
         {

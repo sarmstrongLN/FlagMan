@@ -19,23 +19,23 @@ namespace FlagMan.Services
         }
         public async void alertFlowdock(string message)
         {
-            //lets not spam it up during testing
-            Console.WriteLine(message);
-            return;
+            var configSection = _config.GetSection("flowdock");
             var flowParams = new FlowdockParams()
             {
+
                 content = message,
-                external_user_name = "{username}",
-                thread_id = "{thread_id}"
+                external_user_name = configSection.GetValue<string>("username"),
+                thread_id = configSection.GetValue<string>("threadId")
             };
 
             var json = JsonConvert.SerializeObject(flowParams);
 
+            var flowToken = configSection.GetValue<string>("token");
             var request = new HttpRequestMessage()
             {
-                RequestUri = new Uri("https://api.flowdock.com/v1/messages/chat/{flowtoken}"),
+                RequestUri = new Uri("https://api.flowdock.com/v1/messages/chat/{flowToken}"),
                 Method = HttpMethod.Post,
-                Content = new System.Net.Http.StringContent(json, Encoding.UTF8, "application/json")
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
             var response = await _client.Send(request);
 

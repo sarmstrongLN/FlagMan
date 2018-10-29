@@ -12,6 +12,7 @@ namespace FlagMan.Services
     {
         private List<string> _flags;
         private string _repo;
+        private string _baseBranch;
         private GithubApi _api;
         private FlowdockApi _flowdock;
 
@@ -19,6 +20,7 @@ namespace FlagMan.Services
         {
             _flags = flags;
             _repo = repo;
+            _baseBranch = baseBranch;
             _api = new GithubApi(config, GetRepoOwnerFromUrl(), GetRepoNameFromUrl(), baseBranch);
             _flowdock = new FlowdockApi(config);
         }
@@ -69,11 +71,17 @@ namespace FlagMan.Services
                 }
             }
 
+            if (retVal.Count == 0)
+            {
+                Console.WriteLine($"No pull requests against {_baseBranch} contain \"remove\"");
+            }
+
             return retVal;
         }
 
         private async void ProcessRelevantPRs(List<GithubPullRequestDTO> PRs)
         {
+            int processed = 0;
             foreach( var PR in PRs)
             {
                 foreach( var flag in _flags)
@@ -81,9 +89,15 @@ namespace FlagMan.Services
                     if(Regex.IsMatch(PR.title, $".* {flag}.*", RegexOptions.IgnoreCase))
                     {
                         await ProcessPRForFlag(PR, flag);
+                        processed++;
                     }
                 }
             }
+            if(processed == 0)
+            {
+                Console.WriteLine($"Found {PRs.Count} PRs matching \"Remove\" but not containing a flag");
+            }
+
         }
 
         private async Task ProcessPRForFlag(GithubPullRequestDTO PR, string flag)
